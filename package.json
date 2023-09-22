@@ -5,8 +5,7 @@
   "scripts": {
     "client": "nodemon -e js,hbs,json,css ./index.js",
     "client:build": "node ./index.js",
-    "predeploy" : "npm run build",
-    "deploy" : "gh-pages -d build",
+    "deploy": "gh-pages -d ./public/dist",
     "webpack:watch": "webpack --watch",
     "webpack:build": "webpack --config webpack.config.js",
     "sass:build": "sass src:public/dist/css",
