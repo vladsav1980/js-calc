@@ -1,97 +1,104 @@
-#!/usr/bin/env node
+class Calc {
+  static #value = ''
+  static #NAME = 'calc'
 
-/**
- * Module dependencies.
- */
+  static #isDot = false
+  static #isDotBefore = false
 
-const app = require('./app')
-const debug = require('debug')(
-  'template-express-live-reload:server',
-)
-const http = require('http')
-
-/**
- * Get port from environment and store in Express.
- */
-
-const port = normalizePort(process.env.PORT || '3000')
-app.set('port', port)
-
-/**
- * Create HTTP server.
- */
-
-const server = http.createServer(app)
-
-/**
- * Listen on provided port, on all network interfaces.
- */
-
-server.listen(port)
-server.on('error', onError)
-server.on('listening', onListening)
-
-/**
- * Normalize a port into a number, string, or false.
- */
-
-function normalizePort(val) {
-  const port = parseInt(val, 10)
-
-  if (isNaN(port)) {
-    // named pipe
-    return val
+  static add = (newValue) => {
+    if (isNaN(this.#value[this.#value.length - 2])) {
+      if (
+        Number(this.#value[this.#value.length - 1]) === 0 &&
+        this.#isDot === false
+      ) {
+        return null
+      }
+    }
+    console.log(this.#value)
+    this.#value = this.#value.concat(newValue)
+    this.#output()
   }
 
-  if (port >= 0) {
-    // port number
-    return port
+  static #output = () => {
+    this.#save()
+    window.output.innerHTML = this.#value
   }
 
-  return false
+  static dot = () => {
+    if (this.#isDot) {
+      return null
+    }
+    if (isNaN(this.#value[this.#value.length - 1])) {
+      return null
+    }
+    this.#value = this.#value.concat('.')
+    this.#output()
+    this.#isDot = true
+  }
+
+  static backspace = () => {
+    if (this.#value === '') {
+      return null
+    }
+
+    if (this.#value[this.#value.length - 1] === '.') {
+      this.#isDot = false
+    } else if (isNaN(this.#value[this.#value.length - 1])) {
+      this.#isDot = this.#isDotBefore
+      this.#isDotBefore = false
+    }
+    this.#value = this.#value.slice(
+      0,
+      this.#value.length - 1,
+    )
+    this.#output()
+  }
+
+  static op = (opValue) => {
+    if (isNaN(this.#value[this.#value.length - 1])) {
+      return null
+    }
+    this.#value = this.#value.concat(opValue)
+    this.#output()
+    this.#isDotBefore = this.#isDot
+    this.#isDot = false
+  }
+
+  static reset = () => {
+    this.#value = ''
+    this.#output()
+    this.#isDot = false
+    this.#isDotBefore = false
+  }
+
+  static result = () => {
+    this.#value = String(eval(this.#value))
+    if (this.#value.includes('.')) {
+      this.#isDot = true
+    } else {
+      this.#isDot = false
+    }
+    this.#output()
+    this.#isDotBefore = false
+  }
+
+  static #save = () => {
+    window.localStorage.setItem(this.#NAME, this.#value)
+  }
+
+  static #load = () => {
+    this.#value =
+      window.localStorage.getItem(this.#NAME) || ''
+  }
+
+  static init = () => {
+    this.#load()
+    this.#output()
+  }
 }
 
-/**
- * Event listener for HTTP server "error" event.
- */
+window.calc = Calc
 
-function onError(error) {
-  if (error.syscall !== 'listen') {
-    throw error
-  }
-
-  const bind =
-    typeof port === 'string'
-      ? 'Pipe ' + port
-      : 'Port ' + port
-
-  // handle specific listen errors with friendly messages
-  switch (error.code) {
-    case 'EACCES':
-      console.log(bind + ' requires elevated privileges')
-      process.exit(1)
-      break
-    case 'EADDRINUSE':
-      console.log(bind + ' is already in use')
-      process.exit(1)
-      break
-    default:
-      throw error
-  }
-}
-
-/**
- * Event listener for HTTP server "listening" event.
- */
-
-function onListening() {
-  const addr = server.address()
-  const bind =
-    typeof addr === 'string'
-      ? 'pipe ' + addr
-      : 'port ' + addr.port
-  debug('Listening on ' + bind)
-  console.log(
-    'Listening on ' + 'http://localhost:' + addr.port,
-  )
-}
+document.addEventListener('DOMContentLoaded', () => {
+  Calc.init()
+})
